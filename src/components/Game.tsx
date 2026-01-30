@@ -1,50 +1,85 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Scene } from './Scene';
-import { socket } from '../socket';
+import { supabase } from '../supabase';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
-export function Game({ roomId }: { roomId: string, username: string }) {
-    const [gameState, setGameState] = useState<any>(null);
+export function Game({ roomId, username }: { roomId: string, username: string }) {
+    const [players, setPlayers] = useState<Record<string, any>>({});
+    const [rolls, setRolls] = useState<Record<string, number>>({});
     const [rolling, setRolling] = useState(false);
     const [lastResults, setLastResults] = useState<number[] | null>(null);
+    const channelRef = useRef<RealtimeChannel | null>(null);
 
     useEffect(() => {
-        socket.on('update-game-state', (state) => {
-            setGameState(state);
+        // Subscribe to public channel for the room
+        const channel = supabase.channel(`room:${roomId}`, {
+            config: {
+                presence: {
+                    key: username,
+                },
+            },
         });
 
-        socket.on('player-rolled', ({ forces }) => {
-            // In 2D, 'forces' is actually just our results array
-            setRolling(true);
-            setLastResults(forces);
+        channelRef.current = channel;
 
-            // Artificial delay to simulate rolling
-            setTimeout(() => {
-                setRolling(false);
-                // If it was ME rolling, I report my final result to server
-                // But in this logic, server broadcasts 'player-rolled' to everyone.
-                // The emitter should be the one reporting the result to finalize.
-            }, 1000);
-        });
+        // Presence sync
+        channel
+            .on('presence', { event: 'sync' }, () => {
+                const state = channel.presenceState();
+                const formattedPlayers: Record<string, any> = {};
+
+                Object.keys(state).forEach((key) => {
+                    formattedPlayers[key] = state[key][0];
+                });
+
+                setPlayers(formattedPlayers);
+            })
+            // Broadcast listener for rolls
+            .on('broadcast', { event: 'player-rolled' }, ({ payload }) => {
+                const { forces } = payload;
+                setRolling(true);
+                setLastResults(forces);
+
+                setTimeout(() => {
+                    setRolling(false);
+                }, 1000);
+            })
+            // Broadcast listener for final results
+            .on('broadcast', { event: 'dice-result' }, ({ payload }) => {
+                const { results, playerId } = payload;
+                setRolls(prev => ({ ...prev, [playerId]: results }));
+            })
+
+            .subscribe();
 
         return () => {
-            socket.off('update-game-state');
-            socket.off('player-rolled');
+            supabase.removeChannel(channel);
         };
-    }, []);
+    }, [roomId, username]);
 
-    const handleRoll = () => {
-        if (rolling) return;
+    const handleRoll = async () => {
+        if (rolling || !channelRef.current) return;
 
         // Generate 6 random dice values
         const results = Array(6).fill(0).map(() => Math.floor(Math.random() * 6) + 1);
 
-        // Use 'forces' key to keep server happy without changes
-        socket.emit('roll-dice', { roomId, forces: results });
+        // Broadcast rolling state
+        await channelRef.current.send({
+            type: 'broadcast',
+            event: 'player-rolled',
+            payload: { forces: results, playerId: username }
+        });
 
-        // Report result to server (total)
+        // Broadcast final result after delay
         const total = results.reduce((a, b) => a + b, 0);
-        setTimeout(() => {
-            socket.emit('dice-result', { roomId, results: total });
+        setTimeout(async () => {
+            if (channelRef.current) {
+                await channelRef.current.send({
+                    type: 'broadcast',
+                    event: 'dice-result',
+                    payload: { results: total, playerId: username }
+                });
+            }
         }, 1100);
     };
 
@@ -63,7 +98,7 @@ export function Game({ roomId }: { roomId: string, username: string }) {
                         <h2 className="text-2xl font-black bg-gradient-to-br from-blue-400 to-indigo-500 bg-clip-text text-transparent">ROOM: {roomId}</h2>
                         <div className="flex items-center gap-2 mt-2">
                             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-                            <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Live Session</span>
+                            <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">Supabase Realtime</span>
                         </div>
                     </div>
 
@@ -71,17 +106,19 @@ export function Game({ roomId }: { roomId: string, username: string }) {
                     <div className="bg-slate-900/60 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-2xl max-w-xs pointer-events-auto">
                         <h3 className="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black mb-4">Board Leaderboard</h3>
                         <div className="space-y-4">
-                            {gameState && Object.values(gameState.players).map((p: any) => (
-                                <div key={p.id} className="flex items-center justify-between gap-6">
+                            {Object.values(players).map((p: any) => (
+                                <div key={p.username} className="flex items-center justify-between gap-6">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-inner border border-white/10"
                                             style={{ background: `linear-gradient(135deg, ${p.color}, ${p.color}dd)` }}>
                                             {p.username[0].toUpperCase()}
                                         </div>
-                                        <span className="font-bold text-slate-200 tracking-tight">{p.username}</span>
+                                        <span className="font-bold text-slate-200 tracking-tight">
+                                            {p.username} {p.username === username ? '(You)' : ''}
+                                        </span>
                                     </div>
                                     <div className="text-2xl font-black text-amber-500 drop-shadow-sm">
-                                        {gameState.rolls[p.id] || '-'}
+                                        {rolls[p.username] || '-'}
                                     </div>
                                 </div>
                             ))}
@@ -110,3 +147,4 @@ export function Game({ roomId }: { roomId: string, username: string }) {
         </div>
     );
 }
+

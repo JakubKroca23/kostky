@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { socket } from '../socket';
+import { supabase } from '../supabase';
 
 interface LobbyProps {
     onJoin: (room: string, user: string) => void;
@@ -9,13 +9,29 @@ export function Lobby({ onJoin }: LobbyProps) {
     const [username, setUsername] = useState('');
     const [roomId, setRoomId] = useState('room1');
 
-    const handleJoin = (e: React.FormEvent) => {
+    const handleJoin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (username.trim() && roomId.trim()) {
-            socket.auth = { username };
-            socket.connect();
-            socket.emit('join-room', { roomId, username });
-            onJoin(roomId, username);
+            // In Supabase, we join a channel and track presence
+            const channel = supabase.channel(`room:${roomId}`, {
+                config: {
+                    presence: {
+                        key: username,
+                    },
+                },
+            });
+
+            await channel.subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await channel.track({
+                        id: Math.random().toString(36).substr(2, 9),
+                        username,
+                        color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+                        online_at: new Date().toISOString(),
+                    });
+                    onJoin(roomId, username);
+                }
+            });
         }
     };
 
@@ -69,4 +85,5 @@ export function Lobby({ onJoin }: LobbyProps) {
         </div>
     );
 }
+
 
