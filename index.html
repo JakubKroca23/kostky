@@ -8,24 +8,24 @@
   <title>Dice Master 2D</title>
   <script>
     window.onerror = function (msg, url, line, col, error) {
-      var div = document.createElement("div");
-      div.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(200,0,0,0.9);color:white;padding:40px;z-index:9999;font-family:monospace;white-space:pre-wrap;overflow:auto;";
-      div.innerText = "Runtime Error:\n" + msg + "\nAt: " + url + ":" + line + ":" + col + "\n\n" + (error ? error.stack : "");
+      var div = document.getElementById("error-overlay") || document.createElement("div");
+      div.id = "error-overlay";
+      div.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:#800;color:white;padding:20px;z-index:9999;font-family:monospace;white-space:pre-wrap;overflow:auto;line-height:1.5;";
+      div.innerHTML = "<h1>Runtime Error</h1>" +
+        "<b>Message:</b> " + msg + "<br/>" +
+        "<b>File:</b> " + url + "<br/>" +
+        "<b>Line:</b> " + line + " <b>Col:</b> " + col + "<br/><br/>" +
+        "<b>Stack:</b><br/>" + (error ? error.stack : "No stack available");
       document.body.appendChild(div);
+      return false;
     };
-    window.addEventListener('unhandledrejection', function (event) {
-      var div = document.createElement("div");
-      div.style.cssText = "position:fixed;bottom:0;left:0;width:100%;height:100%;background:rgba(200,100,0,0.9);color:white;padding:40px;z-index:9999;font-family:monospace;white-space:pre-wrap;overflow:auto;";
-      div.innerText = "Unhandled Promise Rejection:\n" + event.reason + "\n\nStack:\n" + (event.reason && event.reason.stack);
-      document.body.appendChild(div);
-    });
   </script>
 </head>
 
 <body>
   <div id="root"></div>
-  <script type="module" crossorigin src="/src/main.tsx"></script>
-
+  <script type="module" src="/src/main.tsx"></script>
 </body>
+
 
 </html>
