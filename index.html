@@ -2,28 +2,25 @@
 <html lang="en">
 
 <head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dice Master 2D</title>
   <script>
     window.onerror = function (msg, url, line, col, error) {
       var div = document.createElement("div");
-      div.style.cssText = "position:fixed;top:0;left:0;width:100%;background:rgba(200,0,0,0.9);color:white;padding:20px;z-index:9999;font-family:monospace;white-space:pre-wrap;";
+      div.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(200,0,0,0.9);color:white;padding:40px;z-index:9999;font-family:monospace;white-space:pre-wrap;overflow:auto;";
       div.innerText = "Runtime Error:\n" + msg + "\nAt: " + url + ":" + line + ":" + col + "\n\n" + (error ? error.stack : "");
       document.body.appendChild(div);
     };
     window.addEventListener('unhandledrejection', function (event) {
       var div = document.createElement("div");
-      div.style.cssText = "position:fixed;bottom:0;left:0;width:100%;background:rgba(200,100,0,0.9);color:white;padding:20px;z-index:9999;font-family:monospace;white-space:pre-wrap;";
-      div.innerText = "Unhandled Promise Rejection:\n" + event.reason;
+      div.style.cssText = "position:fixed;bottom:0;left:0;width:100%;height:100%;background:rgba(200,100,0,0.9);color:white;padding:40px;z-index:9999;font-family:monospace;white-space:pre-wrap;overflow:auto;";
+      div.innerText = "Unhandled Promise Rejection:\n" + event.reason + "\n\nStack:\n" + (event.reason && event.reason.stack);
       document.body.appendChild(div);
     });
   </script>
-  <html lang="en">
-
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kostky</title>
-  </head>
+</head>
 
 <body>
   <div id="root"></div>

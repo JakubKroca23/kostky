@@ -20,40 +20,53 @@ export function Lobby({ onJoin }: LobbyProps) {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-            <h1 className="text-6xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
-                Dice Master 3D
-            </h1>
-            <form onSubmit={handleJoin} className="bg-gray-800 p-8 rounded-xl shadow-2xl w-96 border border-gray-700">
-                <div className="mb-6">
-                    <label className="block text-sm font-medium mb-2 text-gray-300">Username</label>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                        placeholder="Enter your name"
-                        required
-                    />
+        <div className="flex flex-col items-center justify-center h-screen bg-slate-950 text-white overflow-hidden relative">
+            {/* Background elements for "premium" feel */}
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full"></div>
+
+            <div className="z-10 flex flex-col items-center">
+                <div className="mb-12 text-center">
+                    <h1 className="text-7xl font-black mb-2 tracking-tighter bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">
+                        DICE MASTER
+                    </h1>
+                    <div className="px-4 py-1 bg-blue-600 rounded-full text-[10px] font-black tracking-[0.4em] uppercase inline-block shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+                        2D EDITION
+                    </div>
                 </div>
-                <div className="mb-8">
-                    <label className="block text-sm font-medium mb-2 text-gray-300">Room ID</label>
-                    <input
-                        type="text"
-                        value={roomId}
-                        onChange={(e) => setRoomId(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none transition-all"
-                        placeholder="e.g. room1"
-                        required
-                    />
-                </div>
-                <button
-                    type="submit"
-                    className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-bold text-lg hover:opacity-90 transform transition hover:scale-105"
-                >
-                    Enter Game
-                </button>
-            </form>
+
+                <form onSubmit={handleJoin} className="bg-slate-900/60 backdrop-blur-2xl p-10 rounded-3xl shadow-2xl w-[400px] border border-white/10">
+                    <div className="mb-6">
+                        <label className="block text-[10px] font-black uppercase tracking-widest mb-3 text-slate-500">Your Identity</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="w-full px-5 py-4 bg-slate-800/50 border border-white/5 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-lg font-bold placeholder:text-slate-600"
+                            placeholder="Enter username..."
+                            required
+                        />
+                    </div>
+                    <div className="mb-10">
+                        <label className="block text-[10px] font-black uppercase tracking-widest mb-3 text-slate-500">Battle Room</label>
+                        <input
+                            type="text"
+                            value={roomId}
+                            onChange={(e) => setRoomId(e.target.value)}
+                            className="w-full px-5 py-4 bg-slate-800/50 border border-white/5 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-lg font-bold placeholder:text-slate-600"
+                            placeholder="e.g. room1"
+                            required
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        className="w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl font-black text-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_30px_rgba(37,99,235,0.3)] border-b-4 border-blue-900"
+                    >
+                        START ROLLING
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }
+
