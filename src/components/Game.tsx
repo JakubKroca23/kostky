@@ -11,6 +11,8 @@ export function Game({ roomId, username }: { roomId: string, username: string })
     const channelRef = useRef<RealtimeChannel | null>(null);
 
     useEffect(() => {
+        console.log('Connecting to Supabase channel:', `room:${roomId}`);
+
         // Subscribe to public channel for the room
         const channel = supabase.channel(`room:${roomId}`, {
             config: {
@@ -26,10 +28,13 @@ export function Game({ roomId, username }: { roomId: string, username: string })
         channel
             .on('presence', { event: 'sync' }, () => {
                 const state = channel.presenceState();
+                console.log('Presence sync state:', state);
                 const formattedPlayers: Record<string, any> = {};
 
                 Object.keys(state).forEach((key) => {
-                    formattedPlayers[key] = state[key][0];
+                    if (state[key] && state[key].length > 0) {
+                        formattedPlayers[key] = state[key][0];
+                    }
                 });
 
                 setPlayers(formattedPlayers);
@@ -49,13 +54,24 @@ export function Game({ roomId, username }: { roomId: string, username: string })
                 const { results, playerId } = payload;
                 setRolls(prev => ({ ...prev, [playerId]: results }));
             })
-
-            .subscribe();
+            .subscribe(async (status) => {
+                console.log('Channel subscription status:', status);
+                if (status === 'SUBSCRIBED') {
+                    const presenceTrackStatus = await channel.track({
+                        username,
+                        color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+                        online_at: new Date().toISOString(),
+                    });
+                    console.log('Presence track status:', presenceTrackStatus);
+                }
+            });
 
         return () => {
+            console.log('Cleaning up channel');
             supabase.removeChannel(channel);
         };
     }, [roomId, username]);
+
 
     const handleRoll = async () => {
         if (rolling || !channelRef.current) return;
