@@ -1,0 +1,86 @@
+.die-container {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    perspective: 1000px;
+}
+
+.die-face {
+    width: 100%;
+    height: 100%;
+    background: var(--die-color, #cc0000);
+    border-radius: 12px;
+    position: relative;
+    display: grid;
+    grid-template-areas: 
+        "tl tc tr"
+        "ml mc mr"
+        "bl bc br";
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    padding: 8px;
+    box-shadow: 
+        inset -4px -4px 8px rgba(0,0,0,0.3),
+        inset 4px 4px 8px rgba(255,255,255,0.2),
+        0 4px 10px rgba(0,0,0,0.4);
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.die-shadow {
+    position: absolute;
+    bottom: -6px;
+    left: 4px;
+    right: 4px;
+    height: 8px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 50%;
+    filter: blur(4px);
+    z-index: -1;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 50%;
+    align-self: center;
+    justify-self: center;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.4);
+}
+
+/* Dot Positions */
+.top-left { grid-area: tl; }
+.top-right { grid-area: tr; }
+.middle-left { grid-area: ml; }
+.center { grid-area: mc; }
+.middle-right { grid-area: mr; }
+.bottom-left { grid-area: bl; }
+.bottom-right { grid-area: br; }
+
+.rolling .die-face {
+    animation: roll 0.6s infinite linear;
+}
+
+@keyframes roll {
+    0% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(90deg); }
+    50% { transform: scale(1) rotate(180deg); }
+    75% { transform: scale(1.1) rotate(270deg); }
+    100% { transform: scale(1) rotate(360deg); }
+}
+
+/* Glassy effect for the board background */
+.dice-board {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
